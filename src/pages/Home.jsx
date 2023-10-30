@@ -11,10 +11,11 @@ import videoIcon from "../assets/images/video-icon.png";
 import avatarIcon from "../assets/images/avatar-icon.png";
 import { BsArrowRight } from "react-icons/bs";
 import About from "../components/ui/About";
-import ServiceList from "../components/services/ServiceList";
+import ServiceList from "../components/Services/ServiceList";
 import { SectionHeader } from "../components/reuseable/SectionHeader";
-import DoctorList from "../components/doctors/DoctorList";
-import FaqList from "../components/faq/FaqList";
+import DoctorList from "../components/Doctors/DoctorList";
+import FaqList from "../components/Faq/FaqList";
+import Testimonial from "../components/Testimonial/Testimonial";
 
 export default function Home() {
   return (
@@ -282,6 +283,18 @@ export default function Home() {
         </div>
       </section>
       {/* ====== FAQ Section End */}
+
+      {/* ====== Testimonial Section End */}
+      <section>
+        <div className="container">
+          <SectionHeader
+            title="What our patient say"
+            desc="World-class care for everyone. Our health System offers unmatched, expert health care."
+          />
+          <Testimonial />
+        </div>
+      </section>
+      {/* ====== Testimonial Section End */}
     </div>
   );
 }
