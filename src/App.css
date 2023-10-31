@@ -83,3 +83,7 @@ body {
     display: block;
   }
 }
+
+.doctor_card_specialist {
+  @apply bg-[#CCF0F3] text-irisBlueColor py-1 px-2 lg:py-2 lg:px-6 text-[12px] leading-4 lg:text-[16px] lg:leading-7 font-semibold rounded;
+}
