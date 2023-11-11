@@ -1,8 +1,10 @@
-import { useEffect, useRef } from "react";
-import userAvatar from "../assets/images/avatar-icon.png";
+import { useContext, useEffect, useRef } from "react";
 import logo from "../assets/images/logo.png";
 import { BiMenu } from "react-icons/bi";
 import { Link, NavLink } from "react-router-dom";
+import { AuthContext } from "../contexts/AuthContext";
+import { userCredential } from "../constants/common";
+import { setToLocalStorage } from "../helpers/local-storage";
 
 const navlinks = [
   { path: "/", display: "Home" },
@@ -12,20 +14,25 @@ const navlinks = [
 ];
 
 export default function Header() {
+  const { role, user, token } = useContext(AuthContext);
+
   const headerRef = useRef(null);
   const menuRef = useRef(null);
 
   // * Explain how the sticky header and toggle icon features are working
 
   const handleStickyHeader = () => {
-    window.addEventListener("scroll", () => {
-      if (
-        document.body.scrollTop > 80 ||
-        document.documentElement.scrollTop > 80
-      )
-        headerRef.current.classList.add("sicky_header");
-      else headerRef.current.classList.remove("sicky_header");
-    });
+    const headerElement = headerRef.current;
+    if (headerElement) {
+      window.addEventListener("scroll", () => {
+        if (
+          document.body.scrollTop > 80 ||
+          document.documentElement.scrollTop > 80
+        )
+          headerElement.classList.add("sicky_header");
+        else headerElement.classList.remove("sicky_header");
+      });
+    }
   };
 
   useEffect(() => {
@@ -34,6 +41,10 @@ export default function Header() {
   }, []);
 
   const toggleMenu = () => menuRef.current.classList.toggle("show__menu");
+
+  useEffect(() => {
+    setToLocalStorage(userCredential, { user, role, token });
+  }, [user, role, token]);
 
   return (
     <header className="header flex items-center" ref={headerRef}>
@@ -66,23 +77,25 @@ export default function Header() {
 
           {/* ====== Nav Right ====== */}
           <div className="flex items-center gap-4">
-            <div className="hidden">
-              <Link to="/">
-                <figure className="w-[35px] h-[35px] rounded-full cursor-pointer">
-                  <img
-                    src={userAvatar}
-                    alt=""
-                    className="w-full rounded-full"
-                  />
-                </figure>
+            {user && token ? (
+              <div className="">
+                <Link to={`${role}/profile/me`}>
+                  <figure className="w-[35px] h-[35px] rounded-full cursor-pointer">
+                    <img
+                      src={user?.photo}
+                      alt=""
+                      className="w-full rounded-full"
+                    />
+                  </figure>
+                </Link>
+              </div>
+            ) : (
+              <Link to="/login">
+                <button className="bg-primaryColor py-2 px-6 text-white font-[600] h-[44px] flex items-center justify-center rounded-[50px]">
+                  Login
+                </button>
               </Link>
-            </div>
-
-            <Link to="/login">
-              <button className="bg-primaryColor py-2 px-6 text-white font-[600] h-[44px] flex items-center justify-center rounded-[50px]">
-                Login
-              </button>
-            </Link>
+            )}
 
             <span className="md:hidden" onClick={toggleMenu}>
               <BiMenu className="w-6 h-6 cursor-pointer" />

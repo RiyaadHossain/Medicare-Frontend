@@ -1,34 +1,68 @@
 import signUpImg from "../assets/images/signup.gif";
-import avatar from "../assets/images/avatar-icon.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { uploadToCloudinary } from "../utils/uploadCloudinary";
+import { BASE_URL } from "../config/config";
+import { USER_ROLE } from "../enums/userRole";
+import { GENDER } from "../enums/common";
+import toast from "react-hot-toast";
+import { HashLoader } from "react-spinners";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
 export default function Signup() {
-  // const [showPass, setShowPass] = useState(false);
-  // const [selectedFile, setSelectedFile] = useState(null);
-  // const [previewURL, setPreviewURL] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [previewURL, setPreviewURL] = useState("");
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    gender: "",
-    role: "",
+    gender: GENDER.male,
+    role: USER_ROLE.patient,
     photo: "",
   });
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.targe.name]: e.targe.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleFileInputChange = async (e) => {
     const file = e.target.files[0];
+    const data = await uploadToCloudinary(file);
+    setPreviewURL(data.secure_url);
 
-    console.log(file);
+    setFormData({ ...formData, photo: data.url });
   };
 
   const submitHandler = async (event) => {
     event.preventDefault();
+
+    if (!previewURL) {
+      toast.error("Please upload your avatar", { id: "avatar" });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${BASE_URL}/auth/register`, {
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      const { message, success } = await res.json();
+      if (!success) throw new Error(message);
+
+      toast.success(message);
+      navigate("/login");
+    } catch (error) {
+      toast.error(error.message);
+    }
+    setLoading(false);
   };
 
   return (
@@ -69,15 +103,28 @@ export default function Signup() {
                   className="w-full px-2 py-3 border-b border-solid border-[#0066ff61] focus:outline-none focus:border-b-primaryColor text-[16px] leading-7 text-headingColor placeholder:text-textColor  cursor-pointer"
                 />
               </div>
-              <div className="mb-5">
+              <div className="mb-5 relative">
                 <input
-                  type="password"
+                  type={`${!showPass ? "password" : "text"}`}
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Password"
                   name="password"
                   className="w-full px-2 py-3 border-b border-solid border-[#0066ff61] focus:outline-none focus:border-b-primaryColor text-[16px] leading-7 text-headingColor placeholder:text-textColor  cursor-pointer"
                 />
+                <span className="absolute top-1/2 right-3">
+                  {showPass ? (
+                    <AiFillEye
+                      onClick={() => setShowPass(false)}
+                      className="text-[17px] text-textColor"
+                    />
+                  ) : (
+                    <AiFillEyeInvisible
+                      onClick={() => setShowPass(true)}
+                      className="text-[17px] text-textColor"
+                    />
+                  )}
+                </span>
               </div>
 
               <div className="mb-5 flex items-center justify-between">
@@ -87,6 +134,7 @@ export default function Signup() {
                     name="role"
                     value={formData.role}
                     onChange={handleInputChange}
+                    defaultValue={USER_ROLE.patient}
                     className="text-textColor font-semibold text-[15px] leading-7 px-4 py-3 ml-2 focus:outline-none"
                   >
                     <option value="patient">Patient</option>
@@ -100,6 +148,7 @@ export default function Signup() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
+                    defaultValue={GENDER.male}
                     className="text-textColor font-semibold text-[15px] leading-7 px-4 py-3 ml-2 focus:outline-none"
                   >
                     <option value="male">Male</option>
@@ -110,9 +159,15 @@ export default function Signup() {
               </div>
 
               <div className="mb-5 flex items-center gap-3">
-                <figure className="w-16 h-16 rounded-full border-2 border-solid border-primaryColor flex items-center justify-center">
-                  <img src={avatar} alt="" className="w-full rounded-full" />
-                </figure>
+                {previewURL && (
+                  <figure className="w-16 h-16 rounded-full border-2 border-solid border-primaryColor flex items-center justify-center">
+                    <img
+                      src={previewURL}
+                      alt=""
+                      className="w-full rounded-full"
+                    />
+                  </figure>
+                )}
                 <div className="relative w-[130px] h-[50px]">
                   <input
                     onChange={handleFileInputChange}
@@ -133,7 +188,11 @@ export default function Signup() {
 
               <div className="mt-7">
                 <button className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3">
-                  Login
+                  {loading ? (
+                    <HashLoader size={35} color="#ffffff" />
+                  ) : (
+                    "Signup"
+                  )}
                 </button>
               </div>
 

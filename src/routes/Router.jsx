@@ -6,6 +6,10 @@ import Doctors from "../pages/Doctors/Doctors";
 import DoctorDetails from "../pages/Doctors/DoctorDetails";
 import Signup from "../pages/Signup";
 import Login from "../pages/Login";
+import MyAccount from "../dashboard/users-account/MyAccount";
+import Dashboard from "../dashboard/doctors-account/Dashboard";
+import ProtectedRoute from "./ProtectedRoute";
+import { USER_ROLE } from "../enums/userRole";
 
 export default function Router() {
   const routes = [
@@ -17,6 +21,22 @@ export default function Router() {
     { path: "/doctors/:id", element: <DoctorDetails /> },
     { path: "/register", element: <Signup /> },
     { path: "/login", element: <Login /> },
+    {
+      path: "patient/profile/me",
+      element: (
+        <ProtectedRoute allowedRoles={[USER_ROLE.patient]}>
+          <MyAccount />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "doctor/profile/me",
+      element: (
+        <ProtectedRoute allowedRoles={[USER_ROLE.doctor]}>
+          <Dashboard />
+        </ProtectedRoute>
+      ),
+    },
   ];
 
   return (

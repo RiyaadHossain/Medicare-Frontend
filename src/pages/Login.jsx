@@ -1,12 +1,54 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { HashLoader } from "react-spinners";
+import { BASE_URL } from "../config/config";
+import toast from "react-hot-toast";
+import { AUTHTYPE } from "../contexts/actionTypes";
+import { AuthContext } from "../contexts/AuthContext";
 
 export default function Login() {
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const { dispatch } = useContext(AuthContext);
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.targe.name]: e.targe.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const navigate = useNavigate();
+
+  const submitHandler = async (event) => {
+    event.preventDefault();
+
+    setLoading(true);
+
+    try {
+      const res = await fetch(`${BASE_URL}/auth/login`, {
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      const { message, success, data } = await res.json();
+      if (!success) throw new Error(message);
+
+      dispatch({
+        type: AUTHTYPE.LOGIN_SUCCESS,
+        payload: {
+          user: data.user,
+          token: data.token,
+          role: data.user.role,
+        },
+      });
+
+      toast.success(message);
+      navigate("/");
+    } catch (error) {
+      toast.error(error.message);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -16,7 +58,7 @@ export default function Login() {
           Hello <span className="text-primaryColor">Welcome</span>Back 🎊
         </h3>
 
-        <form className="py-4 md:py-0">
+        <form onSubmit={submitHandler} className="py-4 md:py-0">
           <div className="mb-5">
             <input
               type="email"
@@ -54,7 +96,7 @@ export default function Login() {
 
           <div className="mt-7">
             <button className="w-full bg-primaryColor text-white text-[18px] leading-[30px] rounded-lg px-4 py-3">
-              Login
+              {loading ? <HashLoader size={35} color="#ffffff" /> : "Login"}
             </button>
           </div>
 
